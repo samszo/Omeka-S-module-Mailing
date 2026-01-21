@@ -1,0 +1,66 @@
+<?php
+$this->htmlElement('body')->appendAttribute('class', 'mailing campaigns');
+$this->headTitle($this->translate('Mailing - Campaigns'));
+?>
+
+<nav class="breadcrumbs">
+    <?php echo $this->hyperlink($this->translate('Mailing'), $this->url('admin/mailing')); ?>
+    <span class="separator">/</span>
+    <span><?php echo $this->translate('Campaigns'); ?></span>
+</nav>
+
+<div id="page-actions">
+    <?php echo $this->hyperlink($this->translate('Back to Mailing'), $this->url('admin/mailing'), ['class' => 'button']); ?>
+</div>
+
+<h1><?php echo $this->translate('Campaigns'); ?></h1>
+
+<div class="campaigns-list">
+    <?php if (empty($campaigns)): ?>
+        <p><?php echo $this->translate('No campaigns found.'); ?></p>
+    <?php else: ?>
+        <table class="tablesaw" data-tablesaw-mode="stack">
+            <thead>
+                <tr>
+                    <th><?php echo $this->translate('ID'); ?></th>
+                    <th><?php echo $this->translate('Name'); ?></th>
+                    <th><?php echo $this->translate('Subject'); ?></th>
+                    <th><?php echo $this->translate('Status'); ?></th>
+                    <th><?php echo $this->translate('Lists'); ?></th>
+                    <th><?php echo $this->translate('Views'); ?></th>
+                    <th><?php echo $this->translate('Clicks'); ?></th>
+                    <th><?php echo $this->translate('Created At'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($campaigns as $campaign): ?>
+                    <tr>
+                        <td><?php echo $this->escapeHtml($campaign['id']); ?></td>
+                        <td><?php echo $this->escapeHtml($campaign['name']); ?></td>
+                        <td><?php echo $this->escapeHtml($campaign['subject']); ?></td>
+                        <td>
+                            <span class="status-badge status-<?php echo $this->escapeHtmlAttr($campaign['status']); ?>">
+                                <?php echo $this->escapeHtml($campaign['status']); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php if (!empty($campaign['lists'])): ?>
+                                <?php echo count($campaign['lists']); ?> <?php echo $this->translate('list(s)'); ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo isset($campaign['stats']['views']) ? $this->escapeHtml($campaign['stats']['views']) : '0'; ?></td>
+                        <td><?php echo isset($campaign['stats']['clicks']) ? $this->escapeHtml($campaign['stats']['clicks']) : '0'; ?></td>
+                        <td><?php echo $this->escapeHtml($campaign['created_at']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <p><?php echo sprintf($this->translate('Showing page %s'), $page); ?></p>
+            <p><?php echo sprintf($this->translate('Total campaigns: %s'), $total); ?></p>
+        </div>
+    <?php endif; ?>
+</div>
