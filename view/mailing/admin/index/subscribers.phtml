@@ -1,0 +1,58 @@
+<?php
+$this->htmlElement('body')->appendAttribute('class', 'mailing subscribers');
+$this->headTitle($this->translate('Mailing - Subscribers'));
+?>
+
+<nav class="breadcrumbs">
+    <?php echo $this->hyperlink($this->translate('Mailing'), $this->url('admin/mailing')); ?>
+    <span class="separator">/</span>
+    <span><?php echo $this->translate('Subscribers'); ?></span>
+</nav>
+
+<div id="page-actions">
+    <?php echo $this->hyperlink($this->translate('Back to Mailing'), $this->url('admin/mailing'), ['class' => 'button']); ?>
+</div>
+
+<h1><?php echo $this->translate('Subscribers'); ?></h1>
+
+<div class="subscribers-list">
+    <?php if (empty($subscribers)): ?>
+        <p><?php echo $this->translate('No subscribers found.'); ?></p>
+    <?php else: ?>
+        <table class="tablesaw" data-tablesaw-mode="stack">
+            <thead>
+                <tr>
+                    <th><?php echo $this->translate('ID'); ?></th>
+                    <th><?php echo $this->translate('Email'); ?></th>
+                    <th><?php echo $this->translate('Name'); ?></th>
+                    <th><?php echo $this->translate('Status'); ?></th>
+                    <th><?php echo $this->translate('Lists'); ?></th>
+                    <th><?php echo $this->translate('Created At'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($subscribers as $subscriber): ?>
+                    <tr>
+                        <td><?php echo $this->escapeHtml($subscriber['id']); ?></td>
+                        <td><?php echo $this->escapeHtml($subscriber['email']); ?></td>
+                        <td><?php echo $this->escapeHtml($subscriber['name']); ?></td>
+                        <td><?php echo $this->escapeHtml($subscriber['status']); ?></td>
+                        <td>
+                            <?php if (!empty($subscriber['lists'])): ?>
+                                <?php echo count($subscriber['lists']); ?> <?php echo $this->translate('list(s)'); ?>
+                            <?php else: ?>
+                                -
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo $this->escapeHtml($subscriber['created_at']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <div class="pagination">
+            <p><?php echo sprintf($this->translate('Showing page %s'), $page); ?></p>
+            <p><?php echo sprintf($this->translate('Total subscribers: %s'), $total); ?></p>
+        </div>
+    <?php endif; ?>
+</div>
