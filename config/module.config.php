@@ -1,4 +1,7 @@
-<?php
+<?php declare(strict_types=1);
+
+namespace Mailing;
+
 return [
     'view_manager' => [
         'template_path_stack' => [
@@ -21,6 +24,19 @@ return [
             ],
         ],
     ],
+    'form_elements' => [
+        'invokables' => [
+            Form\ConfigForm::class => Form\ConfigForm::class,
+        ],
+    ],
+    'mailing' => [
+        'config' => [
+            'mailing_listmonk_url' => 180,
+            'mailing_listmonk_username' => 180,
+            'mailing_listmonk_token' => 0,
+        ],
+    ],
+
     'router' => [
         'routes' => [
             'admin' => [

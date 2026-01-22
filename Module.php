@@ -1,15 +1,86 @@
 <?php
 namespace Mailing;
 
+if (!class_exists('Common\TraitModule', false)) {
+    require_once dirname(__DIR__) . '/Common/TraitModule.php';
+}
+
+use Common\TraitModule;
 use Omeka\Module\AbstractModule;
+use Common\Stdlib\PsrMessage;
 use Laminas\EventManager\SharedEventManagerInterface;
-use Laminas\ServiceManager\ServiceLocatorInterface;
+use Laminas\ModuleManager\ModuleManager;
 use Laminas\View\Renderer\PhpRenderer;
-use Laminas\Mvc\Controller\AbstractController;
 use Laminas\Mvc\MvcEvent;
+
 
 class Module extends AbstractModule
 {
+
+    const NAMESPACE = __NAMESPACE__;
+    use TraitModule;
+
+    protected $dependencies = [
+        'Common',
+    ];
+
+    public function init(ModuleManager $moduleManager): void
+    {
+        require_once __DIR__ . '/vendor/autoload.php';
+    }
+
+    public function onBootstrap(MvcEvent $event): void
+    {
+        parent::onBootstrap($event);
+    }
+
+    protected function preInstall(): void
+    {
+        /** @var \Laminas\Mvc\I18n\Translator $translator */
+        $services = $this->getServiceLocator();
+        $translator = $services->get('MvcTranslator');
+        $plugins = $services->get('ControllerPluginManager');
+        $messenger = $plugins->get('messenger');
+
+        if (!method_exists($this, 'checkModuleActiveVersion') || !$this->checkModuleActiveVersion('Mailing', '1.0.0.1')) {
+            $message = new \Omeka\Stdlib\Message(
+                $translator->translate('The module %1$s should be upgraded to version %2$s or later.'), // @translate
+                'Mailing', '1.0.0.1'
+            );
+            throw new \Omeka\Module\Exception\ModuleCannotInstallException((string) $message);
+        }
+
+        $config = $services->get('Config');
+        $basePath = $config['file_store']['local']['base_path'] ?: (OMEKA_PATH . '/files');
+        if (!$this->checkDestinationDir($basePath . '/backup/log')) {
+            $message = new PsrMessage(
+                'The directory "{directory}" is not writeable, so old logs cannot be archived.', // @translate
+                ['directory' => $basePath . '/backup/log']
+            );
+            $messenger->addWarning($message);
+        }
+    }
+
+    public function attachListeners(SharedEventManagerInterface $sharedEventManager): void
+    {
+
+        $sharedEventManager->attach(
+            \Omeka\Form\SettingForm::class,
+            'form.add_elements',
+            [$this, 'handleMainSettings']
+        );
+    }
+
+    public function getConfigForm(PhpRenderer $renderer)
+    {
+        $services = $this->getServiceLocator();
+        $settings = $services->get('Omeka\Settings');
+
+        return $this->getConfigFormAuto($renderer);
+    }
+
+
+    /*
     public function getConfig()
     {
         return include __DIR__ . '/config/module.config.php';
@@ -89,12 +160,15 @@ class Module extends AbstractModule
 
         $html = '';
         foreach ($formElements as $elementInfo) {
-            $html .= $renderer->formRow($renderer->formElement($elementInfo));
+            $e = new Element\Text($elementInfo);
+            $html .= $renderer->formRow($renderer->formElement($e));
         }
         
         return $html;
     }
+    */
 
+    /*
     public function handleConfigForm(AbstractController $controller)
     {
         $settings = $this->getServiceLocator()->get('Omeka\Settings');
@@ -107,4 +181,5 @@ class Module extends AbstractModule
 
         return true;
     }
+    */
 }

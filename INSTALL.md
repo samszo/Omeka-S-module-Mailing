@@ -31,6 +31,12 @@ Before installing the Mailing module, ensure you have:
    chmod -R 755 Mailing
    chown -R www-data:www-data Mailing  # Adjust user/group as needed
    ```
+5. go to the root of the module, and run:
+
+   ```bash
+   composer install --no-dev
+   ```
+
 
 ### Option B: Manual Download
 
