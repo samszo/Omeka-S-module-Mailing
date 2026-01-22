@@ -10,7 +10,7 @@ $this->headTitle($this->translate('Mailing'));
 <h1><?php echo $this->translate('Mailing'); ?></h1>
 
 <div class="mailing-dashboard">
-    <div class="section">
+    <div class="sectionMailing">
         <h2><?php echo $this->translate('Connection Status'); ?></h2>
         <?php if ($connectionStatus): ?>
             <p class="success"><span class="o-icon-success"></span> <?php echo $this->translate('Connected to Listmonk successfully'); ?></p>
@@ -19,7 +19,7 @@ $this->headTitle($this->translate('Mailing'));
         <?php endif; ?>
     </div>
 
-    <div class="section">
+    <div class="sectionMailing">
         <h2><?php echo $this->translate('Quick Links'); ?></h2>
         <ul>
             <li><?php echo $this->hyperlink($this->translate('View Subscribers'), $this->url('admin/mailing/subscribers')); ?></li>
@@ -28,7 +28,7 @@ $this->headTitle($this->translate('Mailing'));
         </ul>
     </div>
 
-    <div class="section">
+    <div class="sectionMailing">
         <h2><?php echo $this->translate('About Listmonk'); ?></h2>
         <p><?php echo $this->translate('Listmonk is a standalone, self-hosted newsletter and mailing list manager. It is designed to be lightweight, fast, and easy to use.'); ?></p>
     </div>

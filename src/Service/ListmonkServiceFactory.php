@@ -12,8 +12,8 @@ class ListmonkServiceFactory implements FactoryInterface
         
         $apiUrl = $settings->get('mailing_listmonk_url', '');
         $username = $settings->get('mailing_listmonk_username', '');
-        $password = $settings->get('mailing_listmonk_password', '');
+        $token = $settings->get('mailing_listmonk_token', '');
 
-        return new ListmonkService($apiUrl, $username, $password);
+        return new ListmonkService($apiUrl, $username, $token);
     }
 }

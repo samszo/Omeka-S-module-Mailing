@@ -6,10 +6,13 @@ use Laminas\View\Model\ViewModel;
 
 class IndexController extends AbstractActionController
 {
+
+    protected $perPage = 10;
+
     public function indexAction()
     {
-        $listmonkService = $this->getServiceLocator()->get('Mailing\ListmonkService');
-        
+        $listmonkService = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Mailing\ListmonkService');
+
         // Test connection
         $connectionStatus = $listmonkService->testConnection();
         
@@ -22,7 +25,7 @@ class IndexController extends AbstractActionController
 
     public function subscribersAction()
     {
-        $listmonkService = $this->getServiceLocator()->get('Mailing\ListmonkService');
+        $listmonkService = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Mailing\ListmonkService');
         
         $page = $this->params()->fromQuery('page', 1);
         $perPage = $this->params()->fromQuery('per_page', 20);
@@ -52,7 +55,7 @@ class IndexController extends AbstractActionController
 
     public function listsAction()
     {
-        $listmonkService = $this->getServiceLocator()->get('Mailing\ListmonkService');
+        $listmonkService = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Mailing\ListmonkService');
         
         $result = $listmonkService->getLists();
         
@@ -70,7 +73,7 @@ class IndexController extends AbstractActionController
 
     public function campaignsAction()
     {
-        $listmonkService = $this->getServiceLocator()->get('Mailing\ListmonkService');
+        $listmonkService = $this->api()->read('vocabularies', 1)->getContent()->getServiceLocator()->get('Mailing\ListmonkService');
         
         $page = $this->params()->fromQuery('page', 1);
         $perPage = $this->params()->fromQuery('per_page', 20);

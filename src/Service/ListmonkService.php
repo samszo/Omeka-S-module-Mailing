@@ -8,14 +8,14 @@ class ListmonkService
 {
     protected $apiUrl;
     protected $username;
-    protected $password;
+    protected $token;
     protected $client;
 
-    public function __construct($apiUrl, $username, $password)
+    public function __construct($apiUrl, $username, $token)
     {
         $this->apiUrl = rtrim($apiUrl, '/');
         $this->username = $username;
-        $this->password = $password;
+        $this->token = $token;
         $this->client = new Client();
     }
 
@@ -25,7 +25,7 @@ class ListmonkService
         
         $this->client->setUri($url);
         $this->client->setMethod($method);
-        $this->client->setAuth($this->username, $this->password);
+        $this->client->setAuth($this->username, $this->token);
         $this->client->setHeaders([
             'Content-Type' => 'application/json',
         ]);

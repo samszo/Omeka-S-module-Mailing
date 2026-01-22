@@ -51,8 +51,16 @@ $this->headTitle($this->translate('Mailing - Subscribers'));
         </table>
 
         <div class="pagination">
-            <p><?php echo sprintf($this->translate('Showing page %s'), $page); ?></p>
-            <p><?php echo sprintf($this->translate('Total subscribers: %s'), $total); ?></p>
+            <p><?php echo sprintf($this->translate('Showing page %s of %s'), $page, floor($total/$perPage)); ?></p>
+            <?php if ($page > 1): ?>
+                <?php echo $this->hyperlink($this->translate('« Previous'), $this->url('admin/mailing', ['action' => 'subscribers'],
+                ['query' => ['page' => $page - 1 ]]), ['class' => 'button']); ?>
+            <?php endif; ?>
+
+            <?php if ($page < $total): ?>
+                <?php echo $this->hyperlink($this->translate('Next »'), $this->url('admin/mailing/subscribers', ['action' => 'subscribers'],
+                ['query' => ['page' => $page + 1]]), ['class' => 'button']); ?>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>

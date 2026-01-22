@@ -13,6 +13,12 @@ return [
             'Mailing\Controller\Admin\Index' => 'Mailing\Controller\Admin\IndexController',
         ],
     ],
+    'service_manager' => [
+        'factories' => [
+            'Mailing\ListmonkService' => Service\ListmonkServiceFactory::class,
+        ],
+    ],
+
     'navigation' => [
         'AdminModule' => [
             [
@@ -42,7 +48,7 @@ return [
             'admin' => [
                 'child_routes' => [
                     'mailing' => [
-                        'type' => 'Literal',
+                        'type' => \Laminas\Router\Http\Literal::class,
                         'options' => [
                             'route' => '/mailing',
                             'defaults' => [
