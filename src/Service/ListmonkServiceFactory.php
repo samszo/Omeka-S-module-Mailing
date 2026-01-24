@@ -9,11 +9,15 @@ class ListmonkServiceFactory implements FactoryInterface
     public function __invoke(ContainerInterface $container, $requestedName, array $options = null)
     {
         $settings = $container->get('Omeka\Settings');
-        
-        $apiUrl = $settings->get('mailing_listmonk_url', '');
-        $username = $settings->get('mailing_listmonk_username', '');
-        $token = $settings->get('mailing_listmonk_token', '');
-
-        return new ListmonkService($apiUrl, $username, $token);
+         return new ListmonkService(
+            $settings->get('mailing_listmonk_url', ''), 
+            $settings->get('mailing_listmonk_username', ''), 
+            $settings->get('mailing_listmonk_token', ''), 
+            $settings->get('mailing_properties_mail', ''),
+            $settings->get('mailing_properties_data', ''),
+            $container->get('Omeka\ApiManager'),
+            $container->get('Omeka\Logger'),
+            $container->get('Omeka\Acl'),
+        );
     }
 }

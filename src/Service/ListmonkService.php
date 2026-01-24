@@ -10,13 +10,23 @@ class ListmonkService
     protected $username;
     protected $token;
     protected $client;
+    protected $propsMail;
+    protected $propsData;
+    protected $api;
+    protected $logger;
+    protected $acl;
 
-    public function __construct($apiUrl, $username, $token)
+    public function __construct($apiUrl, $username, $token, $propsMail, $propsData, $api, $logger, $acl)
     {
         $this->apiUrl = rtrim($apiUrl, '/');
         $this->username = $username;
         $this->token = $token;
+        $this->propsMail = $propsMail;
+        $this->propsData = $propsData;
         $this->client = new Client();
+        $this->api = $api;
+        $this->logger = $logger;
+        $this->acl = $acl;
     }
 
     protected function request($method, $endpoint, $data = null)
@@ -72,6 +82,12 @@ class ListmonkService
         return $this->request(Request::METHOD_GET, '/subscribers/' . $id);
     }
 
+    public function getSubscriberByMail($email)
+    {
+        $query = "query=subscribers.email='".$email."'";
+        return $this->request(Request::METHOD_GET, '/subscribers?' . $query);
+    }
+
     public function createSubscriber($email, $name, $listIds = [], $attributes = [])
     {
         $data = [
@@ -86,7 +102,23 @@ class ListmonkService
 
     public function updateSubscriber($id, $data)
     {
-        return $this->request(Request::METHOD_PUT, '/subscribers/' . $id, $data);
+        return $this->request(Request::METHOD_PUT, '/subscribers/' . $id, $this->prepareData($data));
+    }
+
+    public function prepareData($data){
+        //prepare data
+        $lists = [];
+        foreach ($data["lists"] as $l) {
+            $lists[]=$l["id"];
+        }
+        $updData = [
+            "email"=>$data["email"],
+            "name"=>$data["name"],
+            "status"=>$data["status"],
+            "lists"=>$lists,
+            "attribs"=>$data["attribs"]
+        ];
+        return $updData;
     }
 
     public function deleteSubscriber($id)
@@ -124,6 +156,60 @@ class ListmonkService
     public function startCampaign($id)
     {
         return $this->request(Request::METHOD_PUT, '/campaigns/' . $id . '/status', ['status' => 'running']);
+    }
+
+    public function mergeSubscripter($params)
+    {
+
+        $rs = $this->acl->userIsAllowed(null, 'create');
+        if (!$rs) {
+            throw new Exception\RuntimeException("You haven't permission to do that.");
+        }
+
+        $item = $params['item'];
+        //$this->logger->info('mergeSubscripter of '.$item->id());
+
+        //création des datas associé au subsriber
+        $data = [];
+        foreach ($this->propsData as $p){
+            $values = $item->value($p, ['all' => true]);
+            $nb = count($values);
+            $vals=[];
+            for ($i = 0; $i < $nb; $i++) {    
+                $v = $values[$i];
+                if($v->type()=="literal")
+                    $vals[] = $v->__toString();     
+                else
+                    $vals[] = $v->valueResource()->displayTitle();
+
+            }   
+            if(count($vals))$data[$p] = implode($vals);
+        }
+
+        //vérifie la présence d'un mail
+        $mail = "";
+        foreach ($this->propsMail as $p){
+            $mails = $item->value($p, ['all' => true]);
+            $nb = count($mails);
+            for ($i = 0; $i < $nb; $i++) {            
+                $m = $mails[$i]->__toString();
+                //récupère le subscriber
+                $sub = $this->getSubscriberByMail($m);
+                if($sub['success']){
+                    //mise à jour des datas
+                    //on garde les attribs défini dans la liste
+                    $s = $sub['data']['data']['results'][0];
+                    foreach($data as $dp=>$dv){
+                        $s['attribs'][$dp]=$dv;
+                    }
+                    $r = $this->updateSubscriber($s['id'],$s);
+                }else{
+                    //création du subscriber
+                    $r = $this->createSubscriber($m, $item->displayTitle(), [], $data);
+                }
+                $this->logger->info('mergeSubscripter result for '.$item->id(),$r);
+            }
+        }
     }
 
     public function testConnection()

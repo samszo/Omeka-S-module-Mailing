@@ -33,6 +33,7 @@ return [
     'form_elements' => [
         'invokables' => [
             Form\ConfigForm::class => Form\ConfigForm::class,
+            Form\BatchEditFieldset::class => Form\BatchEditFieldset::class,
         ],
     ],
     'mailing' => [
@@ -40,6 +41,8 @@ return [
             'mailing_listmonk_url' => 180,
             'mailing_listmonk_username' => 180,
             'mailing_listmonk_token' => 0,
+            'mailing_properties_mail' => ["foaf:mbox"],
+            'mailing_properties_data' => ["dcterms:title"],
         ],
     ],
 

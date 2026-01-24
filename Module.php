@@ -12,6 +12,8 @@ use Laminas\EventManager\SharedEventManagerInterface;
 use Laminas\ModuleManager\ModuleManager;
 use Laminas\View\Renderer\PhpRenderer;
 use Laminas\Mvc\MvcEvent;
+use Laminas\EventManager\Event;
+use Mailing\Form\BatchEditFieldset;
 
 
 class Module extends AbstractModule
@@ -65,10 +67,23 @@ class Module extends AbstractModule
     {
 
         $sharedEventManager->attach(
+            \Omeka\Api\Adapter\ItemAdapter::class,
+            'api.batch_update.post',
+            [$this, 'handleResourceBatchUpdatePost']
+        );
+
+        $sharedEventManager->attach(
             \Omeka\Form\SettingForm::class,
             'form.add_elements',
             [$this, 'handleMainSettings']
         );
+
+        $sharedEventManager->attach(
+            \Omeka\Form\ResourceBatchUpdateForm::class,
+            'form.add_elements',
+            [$this, 'formAddElementsResourceBatchUpdateForm']
+        );
+
     }
 
     public function getConfigForm(PhpRenderer $renderer)
@@ -79,107 +94,69 @@ class Module extends AbstractModule
         return $this->getConfigFormAuto($renderer);
     }
 
-
-    /*
-    public function getConfig()
+    public function formAddElementsResourceBatchUpdateForm(Event $event): void
     {
-        return include __DIR__ . '/config/module.config.php';
+        /** @var \Omeka\Form\ResourceBatchUpdateForm $form */
+        $form = $event->getTarget();
+        $services = $this->getServiceLocator();
+        $formElementManager = $services->get('FormElementManager');
+        // $resourceType = $form->getOption('resource_type');
+
+        $fieldset = $formElementManager->get(BatchEditFieldset::class);
+
+        $form->add($fieldset);
     }
 
-    public function install(ServiceLocatorInterface $serviceLocator)
+    /**
+     * Vérifie puis lance la tâche
+     */
+    public function handleResourceBatchUpdatePost(Event $event): void
     {
-        $settings = $serviceLocator->get('Omeka\Settings');
-        $settings->set('mailing_listmonk_url', '');
-        $settings->set('mailing_listmonk_username', '');
-        $settings->set('mailing_listmonk_password', '');
-        $settings->set('mailing_default_list_id', '');
-    }
+        /** @var \Omeka\Api\Request $request */
+        $request = $event->getParam('request');
+        $data = $request->getContent();
 
-    public function uninstall(ServiceLocatorInterface $serviceLocator)
-    {
-        $settings = $serviceLocator->get('Omeka\Settings');
-        $settings->delete('mailing_listmonk_url');
-        $settings->delete('mailing_listmonk_username');
-        $settings->delete('mailing_listmonk_password');
-        $settings->delete('mailing_default_list_id');
-    }
+        if (empty($data['mailing']['mailing_merge_to_listmonk'])) {
+            return;
+        }
 
-    public function getConfigForm(PhpRenderer $renderer)
-    {
-        $settings = $this->getServiceLocator()->get('Omeka\Settings');
-        
-        $formElements = [
-            [
-                'name' => 'mailing_listmonk_url',
-                'type' => 'Text',
-                'options' => [
-                    'label' => 'Listmonk URL',
-                    'info' => 'The base URL of your Listmonk installation (e.g., https://listmonk.example.com)',
-                ],
-                'attributes' => [
-                    'value' => $settings->get('mailing_listmonk_url', ''),
-                    'required' => true,
-                ],
-            ],
-            [
-                'name' => 'mailing_listmonk_username',
-                'type' => 'Text',
-                'options' => [
-                    'label' => 'Listmonk Username',
-                    'info' => 'Username for Listmonk API authentication',
-                ],
-                'attributes' => [
-                    'value' => $settings->get('mailing_listmonk_username', ''),
-                    'required' => true,
-                ],
-            ],
-            [
-                'name' => 'mailing_listmonk_password',
-                'type' => 'Password',
-                'options' => [
-                    'label' => 'Listmonk Password',
-                    'info' => 'Password for Listmonk API authentication',
-                ],
-                'attributes' => [
-                    'value' => $settings->get('mailing_listmonk_password', ''),
-                    'required' => true,
-                ],
-            ],
-            [
-                'name' => 'mailing_default_list_id',
-                'type' => 'Text',
-                'options' => [
-                    'label' => 'Default List ID',
-                    'info' => 'Default mailing list ID in Listmonk',
-                ],
-                'attributes' => [
-                    'value' => $settings->get('mailing_default_list_id', ''),
-                ],
-            ],
+        $ids = (array) $request->getIds();
+        $ids = array_filter(array_map('intval', $ids));
+        if (empty($ids)) {
+            return;
+        }
+
+        $services = $this->getServiceLocator();
+        $plugins = $services->get('ControllerPluginManager');
+        $url = $plugins->get('url');
+        $messenger = $plugins->get('messenger');
+        $dispatcher = $services->get(\Omeka\Job\Dispatcher::class);
+
+        $params = [
+            'ids' => $ids,
+            'idFirst' => $ids[0],
+            'idLast' => $ids[count($ids)-1],
         ];
 
-        $html = '';
-        foreach ($formElements as $elementInfo) {
-            $e = new Element\Text($elementInfo);
-            $html .= $renderer->formRow($renderer->formElement($e));
+
+        if(!empty($data['mailing']['mailing_merge_to_listmonk'])){
+            $params['pipeline'] = "merge_to_listmonk";
+            $this->createJob(\Mailing\Job\mergeItemDataToSubscribters::class, $params, $url, $dispatcher, $messenger);                
         }
         
-        return $html;
-    }
-    */
+   }
 
-    /*
-    public function handleConfigForm(AbstractController $controller)
+    function createJob($jobName, $params, $url, $dispatcher, $messenger): void
     {
-        $settings = $this->getServiceLocator()->get('Omeka\Settings');
-        $params = $controller->params()->fromPost();
-
-        $settings->set('mailing_listmonk_url', $params['mailing_listmonk_url']);
-        $settings->set('mailing_listmonk_username', $params['mailing_listmonk_username']);
-        $settings->set('mailing_listmonk_password', $params['mailing_listmonk_password']);
-        $settings->set('mailing_default_list_id', $params['mailing_default_list_id']);
-
-        return true;
+        $job = $dispatcher->dispatch($jobName, $params);
+        $message = new \Omeka\Stdlib\Message(
+            $params['pipeline'].' via a '.$params['service'].' derivated background job='.$job->getId()
+            . ' ids='.$params['idFirst'].' -> '.$params['idLast']
+        );
+        $message->setEscapeHtml(false);
+        $messenger->addSuccess($message);
     }
-    */
+
+
+   
 }

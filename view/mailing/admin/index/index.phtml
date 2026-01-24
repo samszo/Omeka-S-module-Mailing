@@ -19,6 +19,7 @@ $this->headTitle($this->translate('Mailing'));
         <?php endif; ?>
     </div>
 
+    <?php if ($connectionStatus): ?>
     <div class="sectionMailing">
         <h2><?php echo $this->translate('Quick Links'); ?></h2>
         <ul>
@@ -27,6 +28,7 @@ $this->headTitle($this->translate('Mailing'));
             <li><?php echo $this->hyperlink($this->translate('View Campaigns'), $this->url('admin/mailing/campaigns')); ?></li>
         </ul>
     </div>
+    <?php endif; ?>
 
     <div class="sectionMailing">
         <h2><?php echo $this->translate('About Listmonk'); ?></h2>

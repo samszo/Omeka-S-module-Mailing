@@ -48,6 +48,44 @@ class ConfigForm extends Form
                     'required' => true
                 ],
             ])
+            ->add([
+                'name' => 'mailing_properties_mail',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'element_group' => 'metadata_display',
+                    'label' => 'Properties to search mail', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => 'All properties', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'mailing_properties_mail',
+                    'multiple' => true,
+                    'class' => 'chosen-select',
+                    'data-placeholder' => 'Select properties…', // @translate
+                    'required' => true
+                ],
+            ])
+            ->add([
+                'name' => 'mailing_properties_data',
+                'type' => CommonElement\OptionalPropertySelect::class,
+                'options' => [
+                    'element_group' => 'metadata_display',
+                    'label' => 'Properties to search mail', // @translate
+                    'term_as_value' => true,
+                    'prepend_value_options' => [
+                        'all' => 'All properties', // @translate
+                    ],
+                ],
+                'attributes' => [
+                    'id' => 'mailing_properties_data',
+                    'multiple' => true,
+                    'class' => 'chosen-select',
+                    'data-placeholder' => 'Select properties…', // @translate
+                    'required' => true
+                ],
+            ])
         ;
 
     }
