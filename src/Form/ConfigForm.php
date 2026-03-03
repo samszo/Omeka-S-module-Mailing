@@ -72,7 +72,7 @@ class ConfigForm extends Form
                 'type' => CommonElement\OptionalPropertySelect::class,
                 'options' => [
                     'element_group' => 'metadata_display',
-                    'label' => 'Properties to search mail', // @translate
+                    'label' => 'Properties to merge data', // @translate
                     'term_as_value' => true,
                     'prepend_value_options' => [
                         'all' => 'All properties', // @translate

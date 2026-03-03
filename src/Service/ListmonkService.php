@@ -185,6 +185,15 @@ class ListmonkService
             }   
             if(count($vals))$data[$p] = implode($vals);
         }
+        //ajoute l'identifiant omk
+        $omkBase = explode("/",$item->adminUrl())[1];
+        $data[$omkBase."Id"]=$item->id();
+        //ajoute les sites
+        $sites = $item->sites();
+        foreach ($sites as $s) {
+            $data[$omkBase."_".$s->slug()]=$item->siteUrl($s->slug(),true);
+        }
+
 
         //vérifie la présence d'un mail
         $mail = "";
