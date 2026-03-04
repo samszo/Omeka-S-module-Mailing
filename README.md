@@ -196,9 +196,9 @@ graph LR
     end
     
     subgraph "Listmonk API"
-        Lists[/api/lists]
-        Subscribers[/api/subscribers]
-        Campaigns[/api/campaigns]
+        Lists["/api/lists"]
+        Subscribers["/api/subscribers"]
+        Campaigns["/api/campaigns"]
     end
     
     Controller --> Service
