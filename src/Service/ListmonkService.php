@@ -178,14 +178,14 @@ class ListmonkService
             for ($i = 0; $i < $nb; $i++) {    
                 $v = $values[$i];
                 if($v->type()=="literal")
-                    $data[$p+$i] = $v->__toString();     
+                    $data[$p.$i] = $v->__toString();     
                 elseif($v->type()=="uri"){
                     $key = $p.$i.$v->value(); 
                     //remplace les caractères non gérés par listmonk 
                     $key = str_replace("-","_",$key);
                     $data[$key] = $v->uri();
                 }else
-                    $data[$p+$i] = $v->valueResource()->displayTitle();
+                    $data[$p.$i] = $v->valueResource()->displayTitle();
 
             }
         }
