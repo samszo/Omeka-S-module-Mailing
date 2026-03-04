@@ -174,22 +174,20 @@ class ListmonkService
         foreach ($this->propsData as $p){
             $values = $item->value($p, ['all' => true]);
             $nb = count($values);
-            $vals=[];
             $p=str_replace(":","_",$p);
             for ($i = 0; $i < $nb; $i++) {    
                 $v = $values[$i];
                 if($v->type()=="literal")
-                    $vals[] = $v->__toString();     
+                    $data[$p+$i] = $v->__toString();     
                 elseif($v->type()=="uri"){
                     $key = $p.$i.$v->value(); 
                     //remplace les caractères non gérés par listmonk 
                     $key = str_replace("-","_",$key);
                     $data[$key] = $v->uri();
                 }else
-                    $vals[] = $v->valueResource()->displayTitle();
+                    $data[$p+$i] = $v->valueResource()->displayTitle();
 
-            }   
-            if(count($vals))$data[$p] = implode($vals);
+            }
         }
         //ajoute l'identifiant omk
         $omkBase = explode("/",$item->adminUrl())[1];
