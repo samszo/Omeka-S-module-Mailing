@@ -214,7 +214,7 @@ class ListmonkService
                     //on garde les attribs défini dans la liste
                     $s = $sub['data']['data']['results'][0];
                     //on remplace les attribs
-                    $s['attribs']=[];
+                    //$s['attribs']=[];
                     foreach($data as $dp=>$dv){
                         $s['attribs'][$dp]=$dv;
                     }
