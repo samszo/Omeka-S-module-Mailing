@@ -175,11 +175,15 @@ class ListmonkService
             $values = $item->value($p, ['all' => true]);
             $nb = count($values);
             $vals=[];
+            $p=str_replace(":","_",$p);
             for ($i = 0; $i < $nb; $i++) {    
                 $v = $values[$i];
                 if($v->type()=="literal")
                     $vals[] = $v->__toString();     
-                else
+                elseif($v->type()=="uri"){
+                    $key = $p.$i.$v->value(); 
+                    $data[$key] = $v->uri();
+                }else
                     $vals[] = $v->valueResource()->displayTitle();
 
             }   
