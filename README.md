@@ -11,6 +11,103 @@ This module integrates Listmonk, a self-hosted newsletter and mailing list manag
 - Monitor email campaigns
 - Configure Listmonk API connection
 
+## Architecture
+
+### Composants du système
+
+```mermaid
+graph TB
+    subgraph "Omeka S"
+        UI[Interface Admin]
+        Controller[IndexController]
+        Service[ListmonkService]
+        Config[Configuration Module]
+    end
+    
+    subgraph "Listmonk"
+        API[REST API]
+        DB[(Base de données)]
+        Lists[Listes de diffusion]
+        Subs[Abonnés]
+        Camps[Campagnes]
+    end
+    
+    subgraph "Utilisateurs"
+        Admin[Administrateur]
+        Recipients[Destinataires]
+    end
+    
+    Admin --> UI
+    UI --> Controller
+    Controller --> Service
+    Service --> |HTTP/REST| API
+    API --> DB
+    DB --> Lists
+    DB --> Subs
+    DB --> Camps
+    Camps --> |Emails| Recipients
+    Config --> Service
+    
+    style UI fill:#e1f5ff
+    style Controller fill:#fff4e1
+    style Service fill:#ffe1f5
+    style API fill:#e1ffe1
+    style DB fill:#f5e1ff
+```
+
+### Flux de gestion des abonnés
+
+```mermaid
+sequenceDiagram
+    participant Admin as Administrateur
+    participant UI as Interface Omeka S
+    participant Ctrl as IndexController
+    participant Svc as ListmonkService
+    participant API as Listmonk API
+    participant DB as Base de données
+    
+    Admin->>UI: Accède à "Mailing"
+    UI->>Ctrl: Action: viewSubscribers()
+    Ctrl->>Svc: getSubscribers()
+    Svc->>API: GET /api/subscribers
+    API->>DB: Requête SQL
+    DB-->>API: Données abonnés
+    API-->>Svc: JSON Response
+    Svc-->>Ctrl: Array d'abonnés
+    Ctrl-->>UI: Render subscribers.phtml
+    UI-->>Admin: Affiche liste abonnés
+    
+    Admin->>UI: Ajoute un abonné
+    UI->>Ctrl: Action: addSubscriber()
+    Ctrl->>Svc: createSubscriber(data)
+    Svc->>API: POST /api/subscribers
+    API->>DB: INSERT
+    DB-->>API: ID nouvel abonné
+    API-->>Svc: JSON Success
+    Svc-->>Ctrl: Subscriber created
+    Ctrl-->>UI: Message de confirmation
+    UI-->>Admin: "Abonné ajouté"
+```
+
+### Flux de campagne email
+
+```mermaid
+stateDiagram-v2
+    [*] --> Création: Créer campagne
+    Création --> Planification: Définir contenu
+    Planification --> Validation: Sélectionner listes
+    Validation --> Programmée: Planifier envoi
+    Programmée --> EnCours: Date atteinte
+    EnCours --> Envoyée: Emails envoyés
+    Envoyée --> Analyse: Collecter statistiques
+    Analyse --> [*]: Campagne terminée
+    
+    Validation --> Brouillon: Modifications nécessaires
+    Brouillon --> Validation: Corrections
+    EnCours --> Annulée: Arrêter envoi
+    Annulée --> [*]
+```
+
 ## Features
 
 - **Subscriber Management**: View all subscribers synced with your Listmonk instance
@@ -82,6 +179,43 @@ The module uses the Listmonk REST API to communicate with your Listmonk instance
 - `POST /api/subscribers` - Create new subscribers
 - `PUT /api/subscribers/:id` - Update subscriber information
 - `DELETE /api/subscribers/:id` - Remove subscribers
+
+### Architecture des services
+
+```mermaid
+graph LR
+    subgraph "Omeka S Module"
+        Controller[IndexController]
+        Factory[ListmonkServiceFactory]
+        Service[ListmonkService]
+    end
+    
+    subgraph "Configuration"
+        Settings[Module Settings]
+        Credentials[API Credentials]
+    end
+    
+    subgraph "Listmonk API"
+        Lists[/api/lists]
+        Subscribers[/api/subscribers]
+        Campaigns[/api/campaigns]
+    end
+    
+    Controller --> Service
+    Factory --> Service
+    Settings --> Factory
+    Credentials --> Factory
+    Service --> |GET/POST/PUT/DELETE| Lists
+    Service --> |GET/POST/PUT/DELETE| Subscribers
+    Service --> |GET| Campaigns
+    
+    style Controller fill:#fff4e1
+    style Service fill:#ffe1f5
+    style Factory fill:#e1f5ff
+    style Lists fill:#e1ffe1
+    style Subscribers fill:#e1ffe1
+    style Campaigns fill:#e1ffe1
+```
 
 ## Development
 
