@@ -182,6 +182,8 @@ class ListmonkService
                     $vals[] = $v->__toString();     
                 elseif($v->type()=="uri"){
                     $key = $p.$i.$v->value(); 
+                    //remplace les caractères non gérés par listmonk 
+                    $key = str_replace("-","_",$key);
                     $data[$key] = $v->uri();
                 }else
                     $vals[] = $v->valueResource()->displayTitle();
@@ -210,8 +212,11 @@ class ListmonkService
                 $sub = $this->getSubscriberByMail($m);
                 if($sub['success']){
                     //mise à jour des datas
+                    //TODO:ajouter le choix de remplacer dans le formulaire
                     //on garde les attribs défini dans la liste
                     $s = $sub['data']['data']['results'][0];
+                    //on remplace les attribs
+                    $s['attribs']=[];
                     foreach($data as $dp=>$dv){
                         $s['attribs'][$dp]=$dv;
                     }
